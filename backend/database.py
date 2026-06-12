@@ -11,18 +11,19 @@ import streamlit as st
 from urllib.parse import urlparse
 
 
-def get_connection():
-    """
-    Retorna uma conexão PostgreSQL via pg8000.
-    Lê a DATABASE_URL dos secrets do Streamlit Cloud.
-    """
+@st.cache_resource
+def get_db_config():
+    """Lê e cacheia as configurações do banco — executado só uma vez."""
     try:
         db_url = st.secrets["DATABASE_URL"]
     except Exception:
         db_url = os.environ.get("DATABASE_URL", "")
+    return urlparse(db_url)
 
-    parsed = urlparse(db_url)
-    conn = pg8000.native.Connection(
+def get_connection():
+    """Cria uma nova conexão usando config cacheada."""
+    parsed = get_db_config()
+    return pg8000.native.Connection(
         host=parsed.hostname,
         port=parsed.port or 5432,
         database=parsed.path.lstrip("/"),
@@ -30,7 +31,6 @@ def get_connection():
         password=parsed.password,
         ssl_context=True,
     )
-    return conn
 
 
 def run(conn, sql, params=None):
