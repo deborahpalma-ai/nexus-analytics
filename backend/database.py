@@ -11,10 +11,9 @@ import streamlit as st
 from urllib.parse import urlparse
 
 
-@st.cache_resource
 def get_db_config():
-    """Lê e cacheia as configurações do banco — executado só uma vez."""
     try:
+        import streamlit as st
         db_url = st.secrets["DATABASE_URL"]
     except Exception:
         db_url = os.environ.get("DATABASE_URL", "")
